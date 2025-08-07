@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS Item Search</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .search-section {
+            padding: 40px;
+            background: #f8f9fa;
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 1.1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .search-input:focus {
+            border-color: #4facfe;
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.2);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-50%) scale(1.05);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .config-section {
+            padding: 20px 40px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            margin: 20px 40px;
+            border-radius: 8px;
+        }
+
+        .config-section h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .config-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: monospace;
+        }
+
+        .config-help {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            padding: 0 40px 40px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px 0;
+        }
+
+        .results-count {
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .clear-btn {
+            padding: 8px 16px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clear-btn:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .results-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .results-table td {
+            padding: 16px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+
+        .results-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .results-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .sheet-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .stock-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .stock-high { background: #28a745; }
+        .stock-medium { background: #ffc107; }
+        .stock-low { background: #dc3545; }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .no-results-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 20px;
+            border-left: 4px solid #dc3545;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .search-section,
+            .results-section {
+                padding: 20px;
+            }
+
+            .config-section {
+                margin: 20px;
+                padding: 15px 20px;
+            }
+
+            .results-table {
+                font-size: 0.9rem;
+            }
+
+            .results-table th,
+            .results-table td {
+                padding: 12px 8px;
+            }
+
+            .search-btn {
+                position: static;
+                width: 100%;
+                margin-top: 15px;
+                transform: none;
+            }
+
+            .search-btn:hover {
+                transform: scale(1.02);
+            }
+
+            .search-input {
+                border-radius: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏪 POS Item Search</h1>
+            <p>Search across multiple inventory sheets instantly</p>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchInput" 
+                    placeholder="Enter item name to search..."
+                    autocomplete="off"
+                >
+                <button class="search-btn" id="searchBtn">
+                    🔍 Search
+                </button>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h3>📊 Google Sheets Configuration</h3>
+            <input 
+                type="text" 
+                class="config-input" 
+                id="sheetUrl" 
+                placeholder="https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit#gid=0"
+                value=""
+            >
+            <div class="config-help">
+                <strong>Setup Instructions:</strong><br>
+                1. Make your Google Sheet publicly viewable<br>
+                2. Paste your Google Sheets URL above<br>
+                3. Ensure each sheet tab has an "Item Name" column<br>
+                4. Sheet names will be automatically detected
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Searching across all sheets...</p>
+        </div>
+
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <div class="results-header">
+                <div class="results-count" id="resultsCount"></div>
+                <button class="clear-btn" id="clearBtn">Clear Results</button>
+            </div>
+            <div id="resultsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        class POSSearchApp {
+            constructor() {
+                this.searchInput = document.getElementById('searchInput');
+                this.searchBtn = document.getElementById('searchBtn');
+                this.sheetUrl = document.getElementById('sheetUrl');
+                this.loading = document.getElementById('loading');
+                this.resultsSection = document.getElementById('resultsSection');
+                this.resultsContainer = document.getElementById('resultsContainer');
+                this.resultsCount = document.getElementById('resultsCount');
+                this.clearBtn = document.getElementById('clearBtn');
+                
+                this.sheetId = '';
+                this.sheetData = {};
+                
+                this.initializeEventListeners();
+                this.loadSavedConfig();
+            }
+
+            initializeEventListeners() {
+                this.searchBtn.addEventListener('click', () => this.performSearch());
+                this.searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.performSearch();
+                    }
+                });
+                this.clearBtn.addEventListener('click', () => this.clearResults());
+                this.sheetUrl.addEventListener('blur', () => this.saveConfig());
+            }
+
+            loadSavedConfig() {
+                const saved = JSON.parse(localStorage.getItem('posSearchConfig') || '{}');
+                if (saved.sheetUrl) {
+                    this.sheetUrl.value = saved.sheetUrl;
+                    this.extractSheetId();
+                }
+            }
+
+            saveConfig() {
+                const config = {
+                    sheetUrl: this.sheetUrl.value
+                };
+                localStorage.setItem('posSearchConfig', JSON.stringify(config));
+                this.extractSheetId();
+            }
+
+            extractSheetId() {
+                const url = this.sheetUrl.value;
+                const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+                if (match) {
+                    this.sheetId = match[1];
+                    return true;
+                }
+                return false;
+            }
+
+            showError(message) {
+                this.resultsContainer.innerHTML = `
+                    <div class="error-message">
+                        <strong>Error:</strong> ${message}
+                    </div>
+                `;
+                this.resultsSection.style.display = 'block';
+            }
+
+            showLoading(show = true) {
+                this.loading.style.display = show ? 'block' : 'none';
+            }
+
+            async fetchSheetData(sheetName) {
+                const url = `https://docs.google.com/spreadsheets/d/${this.sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+                
+                try {
+                    const response = await fetch(url);
+                    const text = await response.text();
+                    
+                    // Parse Google Sheets JSON response
+                    const jsonData = JSON.parse(text.substr(47).slice(0, -2));
+                    
+                    if (!jsonData.table || !jsonData.table.rows) {
+                        return [];
+                    }
+                    
+                    const headers = jsonData.table.cols.map(col => col.label || 'Column');
+                    const rows = jsonData.table.rows.map(row => {
+                        const rowData = {};
+                        row.c.forEach((cell, index) => {
+                            rowData[headers[index]] = cell ? (cell.v || '') : '';
+                        });
+                        return rowData;
+                    });
+                    
+                    return { headers, rows };
+                } catch (error) {
+                    console.error(`Error fetching data from sheet "${sheetName}":`, error);
+                    return [];
+                }
+            }
+
+            async getSheetNames() {
+                // For demo purposes, return default sheet names
+                // In a real implementation, you'd fetch this from the Google Sheets API
+                return ['Sheet1', 'Sheet2', 'Sheet3', 'Sheet4', 'Sheet5'];
+            }
+
+            async performSearch() {
+                const searchTerm = this.searchInput.value.trim();
+                
+                if (!searchTerm) {
+                    this.showError('Please enter a search term.');
+                    return;
+                }
+
+                if (!this.extractSheetId()) {
+                    this.showError('Please enter a valid Google Sheets URL.');
+                    return;
+                }
+
+                this.showLoading(true);
+                this.resultsSection.style.display = 'none';
+
+                try {
+                    const sheetNames = await this.getSheetNames();
+                    const allResults = [];
+
+                    // Search all sheets
+                    for (const sheetName of sheetNames) {
+                        const sheetData = await this.fetchSheetData(sheetName);
+                        if (sheetData && sheetData.rows) {
+                            const matches = this.searchInSheet(sheetData, searchTerm, sheetName);
+                            allResults.push(...matches);
+                        }
+                    }
+
+                    this.displayResults(allResults, searchTerm);
+                } catch (error) {
+                    this.showError('Failed to fetch data from Google Sheets. Please check your URL and ensure the sheet is publicly viewable.');
+                    console.error('Search error:', error);
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            searchInSheet(sheetData, searchTerm, sheetName) {
+                const { headers, rows } = sheetData;
+                const results = [];
+                const itemNameIndex = headers.findIndex(header => 
+                    header.toLowerCase().includes('item name') || header.toLowerCase().includes('name')
+                );
+
+                if (itemNameIndex === -1) {
+                    return results;
+                }
+
+                rows.forEach(row => {
+                    const itemName = row[headers[itemNameIndex]] || '';
+                    if (itemName.toLowerCase().includes(searchTerm.toLowerCase())) {
+                        results.push({
+                            ...row,
+                            _sheetName: sheetName,
+                            _headers: headers
+                        });
+                    }
+                });
+
+                return results;
+            }
+
+            getStockIndicator(value) {
+                if (!value || isNaN(value)) return '';
+                
+                const num = parseInt(value);
+                if (num > 20) return '<span class="stock-indicator stock-high"></span>';
+                if (num > 5) return '<span class="stock-indicator stock-medium"></span>';
+                return '<span class="stock-indicator stock-low"></span>';
+            }
+
+            displayResults(results, searchTerm) {
+                this.resultsSection.style.display = 'block';
+                
+                if (results.length === 0) {
+                    this.resultsCount.textContent = 'No results found';
+                    this.resultsContainer.innerHTML = `
+                        <div class="no-results">
+                            <div class="no-results-icon">🔍</div>
+                            <h3>No items found</h3>
+                            <p>No items matching "<strong>${searchTerm}</strong>" were found in any sheet.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                this.resultsCount.textContent = `${results.length} result${results.length !== 1 ? 's' : ''} found`;
+                
+                // Get all unique headers across all results
+                const allHeaders = new Set();
+                results.forEach(result => {
+                    result._headers.forEach(header => allHeaders.add(header));
+                });
+                const headers = Array.from(allHeaders).filter(h => h && h.trim());
+
+                let tableHTML = `
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Sheet</th>
+                                ${headers.map(header => `<th>${header}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                results.forEach(result => {
+                    tableHTML += '<tr>';
+                    tableHTML += `<td><span class="sheet-badge">${result._sheetName}</span></td>`;
+                    
+                    headers.forEach(header => {
+                        let value = result[header] || '';
+                        let cellClass = '';
+                        
+                        // Special formatting for item names
+                        if (header.toLowerCase().includes('name')) {
+                            cellClass = 'item-name';
+                        }
+                        
+                        // Format price columns
+                        if (header.toLowerCase().includes('price') && value && !isNaN(value)) {
+                            value = `₨ ${parseFloat(value).toLocaleString()}`;
+                        }
+                        
+                        // Add stock indicators for stock/quantity columns
+                        let stockIndicator = '';
+                        if (header.toLowerCase().includes('stock') || header.toLowerCase().includes('quantity')) {
+                            stockIndicator = this.getStockIndicator(value);
+                        }
+                        
+                        tableHTML += `<td class="${cellClass}">${stockIndicator}${value}</td>`;
+                    });
+                    
+                    tableHTML += '</tr>';
+                });
+
+                tableHTML += '</tbody></table>';
+                this.resultsContainer.innerHTML = tableHTML;
+            }
+
+            clearResults() {
+                this.resultsSection.style.display = 'none';
+                this.searchInput.value = '';
+                this.searchInput.focus();
+            }
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new POSSearchApp();
+        });
+    </script>
+</body>
+</html>
